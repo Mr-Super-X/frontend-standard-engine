@@ -32,7 +32,7 @@
   "bugs": {
 		"url": "https://github.com/Mr-Super-X/frontend-standard-engine/issues"
 	},
-  "homepage": "https://github.com/Mr-Super-X/frontend-standard-engine/blob/develop/packages/create-husky/README.md",
+  "homepage": "https://github.com/Mr-Super-X/frontend-standard-engine/blob/master/packages/create-husky/README.md",
   "engines": {
     "node": "^14.18.0 || >=16.0.0"
   },
