@@ -1,4 +1,4 @@
-# @frontend-standard-engine/create-husky
+# @mr.mikey/create-husky
 
 ## 说明
 
@@ -6,5 +6,12 @@
 
 ## 使用
 
-> npm install @frontend-standard-engine/create-husky -D
-> npm init @frontend-standard-engine/create-husky
+安装依赖（用户名没取好，输入命令时记得加上冒号）
+> npm install "@mr.mikey/create-husky" -D
+
+运行（用户名没取好，输入命令时记得加上冒号）
+> npm init "@mr.mikey/husky"
+
+或者
+
+> node ./node_modules/@mr.mikey/create-husky/index.js
