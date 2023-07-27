@@ -1,0 +1,20 @@
+{
+  "name": "frontend-standard-engine",
+  "version": "1.0.0",
+  "description": "自动生成前端规范配置的流程引擎",
+  "author": "JP.Chen",
+  "license": "MIT",
+  "scripts": {
+    "create:husky": "node ./node_modules/@frontend-standard-engine/create-husky/index.js"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "keywords": [],
+  "repository": {
+		"type": "git",
+		"url": "https://github.com/Mr-Super-X/frontend-standard-engine.git"
+	},
+  "bugs": {
+		"url": "https://github.com/Mr-Super-X/frontend-standard-engine/issues"
+	}
+}

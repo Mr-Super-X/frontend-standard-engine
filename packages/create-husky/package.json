@@ -1,0 +1,38 @@
+{
+  "name": "@frontend-standard-engine/create-husky",
+  "version": "1.0.0",
+  "description": "为项目生成husky配置",
+  "author": "JP.Chen",
+  "license": "MIT",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "create-husky": "index.js"
+  },
+  "scripts": {
+    "husky": "node index.js"
+  },
+  "files": [
+    "index.js",
+    "src",
+    "package.json"
+  ],
+  "keywords": [],
+  "dependencies": {
+    "js-beautify": "^1.14.9",
+    "kolorist": "^1.8.0",
+    "nanospinner": "^1.1.0",
+    "prompts": "^2.4.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mr-Super-X/frontend-standard-engine.git",
+    "directory": "packages/create-husky"
+  },
+  "bugs": {
+		"url": "https://github.com/Mr-Super-X/frontend-standard-engine/issues"
+	},
+  "engines": {
+    "node": "^14.18.0 || >=16.0.0"
+  }
+}
