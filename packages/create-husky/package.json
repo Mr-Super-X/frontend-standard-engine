@@ -1,6 +1,6 @@
 {
   "name": "@mr.mikey/create-husky",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "为项目生成husky配置",
   "author": "JP.Chen",
   "license": "MIT",
