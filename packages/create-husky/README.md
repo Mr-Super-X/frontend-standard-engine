@@ -79,6 +79,7 @@ devDependencies说明
 4. 输入 `git init` 创建.git目录
 5. 输入 `npm install "@mr.mikey/create-husky" -D` 安装依赖
 6. 输入 `npm init "@mr.mikey/husky"` 执行依赖包
-7. 成功后即可体验输入 `npm run commit` 在终端选择规范的commit-msg
+7. 根目录下添加.gitignore，将node_modules放进去，否则文件太多啦
+8. 成功后即可体验输入 `npm run commit` 在终端选择规范的commit-msg
 
 觉得好用不妨点个star呀🙋

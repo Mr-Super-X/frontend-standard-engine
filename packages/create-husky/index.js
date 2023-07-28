@@ -36,10 +36,10 @@ const projectDirectory = cwd(), // 项目目录
     pnpm: "npm install && pnpm install --save-dev ",
   },
   // 需要安装的依赖
-  initHuskyPackages = "husky",
-  preCommitPackages = "lint-staged",
+  initHuskyPackages = "husky@8.0.3",
+  preCommitPackages = "lint-staged@13.2.3",
   commitMsgPackages =
-    "@commitlint/cli @commitlint/config-conventional commitizen commitlint-config-cz cz-customizable";
+    "@commitlint/cli@17.6.7 @commitlint/config-conventional@17.6.7 commitizen@4.3.0 commitlint-config-cz@0.13.3 cz-customizable@7.0.0";
 // husky输出的脚本内容
 const createGitHook = `npx husky install`;
 const createCommitHook = `npx husky add .husky/pre-commit "npx lint-staged"`;
