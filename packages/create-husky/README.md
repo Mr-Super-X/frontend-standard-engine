@@ -70,3 +70,15 @@ devDependencies说明
 - lint-staged.config：lint-staged配置模板，可自行修改
 - .cz-config.js：自定义终端汉化交互配置模板，可自行修改
 - .commitlintrc.js：commitlint配置模板，可自行修改
+
+## 试用步骤
+
+1. 新建文件夹，如husky-demo
+2. 打开终端进入husky-demo目录
+3. 输入 `npm init -y` 创建package.json
+4. 输入 `git init` 创建.git目录
+5. 输入 `npm install "@mr.mikey/create-husky" -D` 安装依赖
+6. 输入 `npm init "@mr.mikey/husky"` 执行依赖包
+7. 成功后即可体验输入 `npm run commit` 在终端选择规范的commit-msg
+
+觉得好用不妨点个star呀🙋
