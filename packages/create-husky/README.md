@@ -81,7 +81,7 @@ config中新增了commitizen的路径配置，默认配置为cz-customizable表�
 
 根目录下新增文件
 
-- lint-staged.config：lint-staged配置模板，可自行修改
+- lint-staged.config.js：lint-staged配置模板，可自行修改
 - .cz-config.js：自定义终端汉化交互配置模板，可自行修改
 - .commitlintrc.js：commitlint配置模板，可自行修改
 
