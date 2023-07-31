@@ -17,7 +17,9 @@
 
 运行（用户名没取好，输入命令时记得加上引号）
 > npm init "@mr.mikey/husky"
-> 或者
+
+或者
+
 > node ./node_modules/@mr.mikey/create-husky/index.js
 
 运行 `npm init "@mr.mikey/husky"` 演示效果：
@@ -43,27 +45,39 @@ package.json 会新增以下内容
   "husky": "^8.0.3",
   "lint-staged": "^13.2.3"
 }
+"config": {
+  "commitizen": {
+    "path": "./node_modules/cz-customizable"
+  },
+  "cz-customizable": {
+    "config": "./.cz-config.js"
+  }
+}
 ```
 
 scripts说明
 
-| 依赖    | 说明                                                           |
-| ------- | -------------------------------------------------------------- |
-| prepare | npm install时自动触发husky安装，保证团队内成员都能使用         |
-| commit  | 快捷触发终端交互选择规范commit msg命令，将文件推送到本地仓库   |
-| push    | 快捷触发终端交互选择规范commit msg命令，将文件推送到远端版本库 |
+| 依赖    | 说明                                                   |
+| ------- | ------------------------------------------------------ |
+| prepare | npm install时自动触发husky安装，保证团队内成员都能使用 |
+| commit  | 一键触发commit-msg交互选择工具并commit                 |
+| push    | 一键触发commit-msg交互选择工具并push                   |
 
-devDependencies说明
+devDependencies说明（皆安装当前日期（2023/07/28）最新稳定版，安装时会固定以下版本号，防止某个包断崖式更新导致无法使用该功能）
 
-| 依赖                            | 说明                                                                                             |
-| ------------------------------- | ------------------------------------------------------------------------------------------------ |
-| @commitlint/cli                 | commitlint基础，对commit-msg进行校验，不符合angular规范的commit信息将不允许提交                  |
-| @commitlint/config-conventional | 用于commitlint验证msg是否符合angular规范                                                         |
-| commitizen                      | 友好的终端交互工具，输入命令即可自由选择符合angular规范的commit信息                              |
-| commitlint-config-cz            | 用于cz的commitlint可共享配置文件可自定义（用于常规提交和常规变更日志的可自定义Commitizen适配器） |
-| cz-customizable                 | 自定义汉化commitizen，提供符合国人喜好的中文配置                                                 |
-| husky                           | git hook工具                                                                                     |
-| lint-staged                     | 仅对commit的文件做lint校验工具                                                                   |
+| 依赖                                   | 说明                                                                                             |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| @commitlint/cli@17.6.7                 | commitlint基础，对commit-msg进行校验，不符合angular规范的commit信息将不允许提交                  |
+| @commitlint/config-conventional@17.6.7 | 用于commitlint验证msg是否符合angular规范                                                         |
+| commitizen@4.3.0                       | 友好的终端交互工具，输入命令即可自由选择符合angular规范的commit信息                              |
+| commitlint-config-cz@0.13.3            | 用于cz的commitlint可共享配置文件可自定义（用于常规提交和常规变更日志的可自定义Commitizen适配器） |
+| cz-customizable@7.0.0                  | 自定义汉化commitizen，提供符合国人喜好的中文配置                                                 |
+| husky@8.0.3                            | git hook工具                                                                                     |
+| lint-staged@13.2.3                     | 仅对commit的文件做lint校验工具                                                                   |
+
+config说明
+
+config中新增了commitizen的路径配置，默认配置为cz-customizable表示自定义commitizen，同时配置cz-customizable，让它读取生成的自定义配置文件.cz-config.js来实现汉化功能
 
 根目录下新增文件
 
