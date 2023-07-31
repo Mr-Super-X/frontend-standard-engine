@@ -5,7 +5,6 @@
   "author": "JP.Chen",
   "license": "MIT",
   "main": "index.js",
-  "type": "module",
   "bin": {
     "create-husky": "index.js"
   },
