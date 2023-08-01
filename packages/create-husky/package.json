@@ -1,10 +1,11 @@
 {
   "name": "@mr.mikey/create-husky",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "description": "为项目生成husky配置",
   "author": "JP.Chen",
   "license": "MIT",
   "main": "index.js",
+  "type": "module",
   "bin": {
     "create-husky": "index.js"
   },

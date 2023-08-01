@@ -1,4 +1,8 @@
-module.exports = {
+// https://github.com/conventional-changelog/commitlint
+const getConfig = require('commitlint-config-cz/lib/config').get
+const czConfig = require('./.cz-config.js')
+
+const defaultConfig = {
 	ignores: [(commit) => commit.includes("init")],
 	// @see: https://github.com/conventional-changelog/commitlint
 	extends: ["@commitlint/config-conventional"],
@@ -80,3 +84,8 @@ module.exports = {
 		defaultSubject: "",
 	},
 };
+
+// 合并cz配置
+const config = getConfig(czConfig, defaultConfig)
+
+module.exports = config
