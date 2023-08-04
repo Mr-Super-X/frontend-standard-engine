@@ -1,7 +1,7 @@
 {
   "name": "@mr.mikey/create-husky",
-  "version": "1.0.7",
-  "description": "为项目生成husky配置",
+  "version": "1.0.8",
+  "description": "自动为项目工程生成husky及git hook等配置，会创建commitlint对提交信息进行规范限制（angular commit规范）、汉化commitizen配置、lint-staged仅对commit文件做lint校验。",
   "author": "JP.Chen",
   "license": "MIT",
   "main": "index.js",
@@ -17,7 +17,6 @@
     "src",
     "package.json"
   ],
-  "keywords": [],
   "dependencies": {
     "js-beautify": "^1.14.9",
     "kolorist": "^1.8.0",
@@ -38,5 +37,18 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "keywords": [
+    "husky",
+    "commitizen",
+    "commitlint",
+    "cz-customizable",
+    "commitlint-config-cz",
+    "lint-staged",
+    "commitlint-config-cz",
+    "cz",
+    "工程化配置",
+    "汉化cz工具",
+    "angular-commit-standard"
+  ]
 }
