@@ -1,7 +1,7 @@
 {
 	"name": "frontend-standard-engine",
 	"version": "1.0.0",
-	"description": "自动生成前端规范配置的流程引擎",
+	"description": "自动生成前端规范配置的cli工具集合",
 	"author": "JP.Chen",
 	"license": "MIT",
 	"scripts": {
@@ -13,14 +13,16 @@
 	"devDependencies": {
 		"@commitlint/cli": "^17.6.7",
 		"@commitlint/config-conventional": "^17.6.7",
-		"@mr.mikey/create-husky": "^1.0.7",
+		"@mr.mikey/create-husky": "^1.0.8",
 		"commitizen": "^4.3.0",
 		"commitlint-config-cz": "^0.13.3",
 		"cz-customizable": "^7.0.0",
 		"husky": "^8.0.3",
 		"lint-staged": "^13.2.3"
 	},
-	"keywords": [],
+	"keywords": [
+		"前端工程化cli工具探索"
+	],
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/Mr-Super-X/frontend-standard-engine.git"
