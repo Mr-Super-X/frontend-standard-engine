@@ -2,13 +2,18 @@
 import prompts from "prompts";
 import beautify from "js-beautify";
 import { red, cyan, green } from "kolorist";
-import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { exec } from "node:child_process";
 import { resolve } from "node:path";
 import { cwd } from "node:process";
 import { fileURLToPath } from "node:url";
 import { createSpinner } from "nanospinner";
-import { getLintStagedOption } from "./src/index.js";
+import { getLintStagedOption, deleteFolderRecursive } from "./src/index.js";
 
 const projectDirectory = cwd(), // 项目目录
   pakFile = resolve(projectDirectory, "package.json"), // 获取项目package.json
@@ -28,7 +33,6 @@ const projectDirectory = cwd(), // 项目目录
     ".cz-config.js"
   ),
   needDependencies = ["eslint", "prettier", "stylelint"], // pak包中需包含的依赖
-
   // husky命令枚举
   huskyCommandMap = {
     npm: "npm install && npm install --save-dev ",
@@ -123,6 +127,10 @@ const overwriteQuestions = [
     type: (_, { overwrite } = {}) => {
       if (overwrite === false) {
         throw new Error(red("✖ 取消操作"));
+      } else {
+        // 用户同意覆盖，则先清空.husky文件夹，然后走后面的重新安装流程
+        // 如果不清空.husky则每次都会在git hook钩子中push一条代码导致很多重复内容
+        deleteFolderRecursive(huskyFile)
       }
       return null;
     },
@@ -193,12 +201,15 @@ async function init() {
   const command = `${huskyCommandMap[manager]}${packages}`;
 
   // 根据用户选择生成lint-staged.config的内容
-  const lintStagedContent = beautify(`module.exports = ${JSON.stringify(
-    getLintStagedOption(selectLint || pakHasLint)
-  )}`, {
-    indent_size: 2, // 缩进两个空格
-    space_in_empty_paren: true,
-  });
+  const lintStagedContent = beautify(
+    `module.exports = ${JSON.stringify(
+      getLintStagedOption(selectLint || pakHasLint)
+    )}`,
+    {
+      indent_size: 2, // 缩进两个空格
+      space_in_empty_paren: true,
+    }
+  );
   // 创建安装进度
   const spinner = createSpinner("Installing packages...").start();
   // 执行install安装命令
@@ -228,8 +239,8 @@ async function init() {
         config: "./.cz-config.js",
       },
     };
-		// 考虑不帮用户做强制决定，由用户自己修复
-		// delete newPakContent.type; // 默认删除package.json的type属性，项目一般都支持esmodule和commonjs
+    // 考虑不帮用户做强制决定，由用户自己修复
+    // delete newPakContent.type; // 默认删除package.json的type属性，项目一般都支持esmodule和commonjs
     // 写入package.json文件，后面的参数用于美化json格式
     writeFileSync(pakFile, JSON.stringify(newPakContent, null, "\t"));
     writeFileSync(lintStagedFile, lintStagedContent);

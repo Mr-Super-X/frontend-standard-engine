@@ -12,6 +12,9 @@
 
 ## 使用
 
+环境
+> node: ^14.18.0 || >=16.0.0
+
 安装依赖（用户名没取好，输入命令时记得加上引号）
 > npm install "@mr.mikey/create-husky" -D
 
