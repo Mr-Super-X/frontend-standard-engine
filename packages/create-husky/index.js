@@ -33,14 +33,14 @@ const projectDirectory = cwd(), // 项目目录
     ".cz-config.js"
   ),
   needDependencies = ["eslint", "prettier", "stylelint"], // pak包中需包含的依赖
-  // husky命令枚举
-  huskyCommandMap = {
+  // 命令枚举
+  commandMap = {
     npm: "npm install && npm install --save-dev ",
     yarn: "yarn && yarn add --dev ",
     pnpm: "npm install && pnpm install --save-dev ",
   },
   // 需要安装的依赖
-  initHuskyPackages = "husky@8.0.3",
+  huskyPackages = "husky@8.0.3",
   preCommitPackages = "lint-staged@13.2.3",
   commitMsgPackages =
     "@commitlint/cli@17.6.7 @commitlint/config-conventional@17.6.7 commitizen@4.3.0 commitlint-config-cz@0.13.3 cz-customizable@7.0.0";
@@ -190,15 +190,15 @@ async function init() {
   const { selectLint, manager, commitlint } = result;
   // 判断用户是否选择commitlint，安装不同的包
   const packages = commitlint
-    ? `${initHuskyPackages} ${preCommitPackages} ${commitMsgPackages}`
-    : `${initHuskyPackages} ${preCommitPackages}`;
+    ? `${huskyPackages} ${preCommitPackages} ${commitMsgPackages}`
+    : `${huskyPackages} ${preCommitPackages}`;
   // 判断用户是否选择commitlint，执行不同的操作
   const createHookCommand = commitlint
     ? `${createGitHook} && ${createCommitHook} && ${createMsgHook}`
     : `${createGitHook} && ${createCommitHook}`;
 
   // 生成安装命令
-  const command = `${huskyCommandMap[manager]}${packages}`;
+  const command = `${commandMap[manager]}${packages}`;
 
   // 根据用户选择生成lint-staged.config的内容
   const lintStagedContent = beautify(
