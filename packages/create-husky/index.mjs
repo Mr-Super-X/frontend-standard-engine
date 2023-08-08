@@ -8,9 +8,9 @@ import {
   readFileSync,
   writeFileSync,
 } from "node:fs";
+import { cwd } from "node:process";
 import { exec } from "node:child_process";
 import { resolve } from "node:path";
-import { cwd } from "node:process";
 import { fileURLToPath } from "node:url";
 import { createSpinner } from "nanospinner";
 import { getLintStagedOption, deleteFolderRecursive } from "./src/index.js";

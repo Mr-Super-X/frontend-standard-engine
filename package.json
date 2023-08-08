@@ -5,7 +5,7 @@
 	"author": "JP.Chen",
 	"license": "MIT",
 	"scripts": {
-		"create:husky": "node ./node_modules/@frontend-standard-engine/create-husky/index.js",
+		"create:husky": "node ./node_modules/@mr.mikey/create-husky/index.mjs",
 		"prepare": "husky install",
 		"commit": "git add . && cz",
 		"push": "git add . && cz && git push"

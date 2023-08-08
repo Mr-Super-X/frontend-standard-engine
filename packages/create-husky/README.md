@@ -23,7 +23,7 @@
 
 或者
 
-> node ./node_modules/@mr.mikey/create-husky/index.js
+> node ./node_modules/@mr.mikey/create-husky/index.mjs
 
 运行 `npm init "@mr.mikey/husky"` 演示效果：
 
