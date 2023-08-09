@@ -117,6 +117,8 @@ node_modules
 .husky
 package.json
 package-lock.json
+pnpm-lock.yaml # 如果你选择pnpm安装
+yarn.lock # 如果你选择yarn安装
 .commitlintrc.js
 .cz-config.js
 lint-staged.config.js
