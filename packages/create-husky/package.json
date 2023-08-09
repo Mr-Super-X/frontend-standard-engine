@@ -1,6 +1,6 @@
 {
   "name": "@mr.mikey/create-husky",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "自动为项目工程生成husky及git hook等配置，会创建commitlint对提交信息进行规范限制（angular commit规范）、汉化commitizen配置、lint-staged仅对commit文件做lint校验。",
   "author": "JP.Chen",
   "license": "MIT",
