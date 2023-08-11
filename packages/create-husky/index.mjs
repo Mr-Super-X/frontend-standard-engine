@@ -36,7 +36,7 @@ const projectDirectory = cwd(), // 项目目录
   releaseItFileTemplateDir = resolve(
     fileURLToPath(import.meta.url),
     "../src/template",
-    ".cz-config.js"
+    ".release-it.json"
   ),
   needDependencies = ["eslint", "prettier", "stylelint"], // pak包中需包含的依赖
   // 命令枚举
