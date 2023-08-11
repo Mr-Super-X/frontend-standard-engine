@@ -5,6 +5,8 @@
 - 做项目基建时需要对团队成员commit-msg进行规范化限制，一般采用业界公认的angular提交规范，为了避免繁琐无聊的配置，将这个过程做成了npm包，通过安装包执行命令即可一键在项目中生成配置，并通过husky来创建git hook限制提交msg格式。
 - 不会吧！不会还有人在手动维护CHANGELOG文档和管理版本吧！工具包集成了 [release-it](https://github.com/release-it/release-it/blob/main/README.md) 和 auto-changelog 功能，你可以在初始化的时候选择是否需要它，它的主要作用是帮助我们快速生成符合 [Semantic Versioning](https://semver.org/) 规范的版本，自动打tag和修改package.json中的version字段，并且支持自动生成changelog功能，生成的CHANGELOG.md在项目根目录下。
 
+请注意，使用release-it功能必须保证设置了远端仓库地址，否则将会失败。
+
 初始化完成后输入 `npm run commit` 在cmder终端演示效果：
 
 ![](https://github.com/Mr-Super-X/assets-resouece/raw/main/images/1653480834.jpg)
