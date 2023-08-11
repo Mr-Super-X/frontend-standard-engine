@@ -45,10 +45,14 @@
     "cz-customizable",
     "commitlint-config-cz",
     "lint-staged",
-    "commitlint-config-cz",
     "cz",
-    "工程化配置",
     "汉化cz工具",
-    "angular-commit-standard"
+    "工程化配置",
+    "angular-commit-standard",
+    "@commitlint/cli",
+    "@commitlint/config-conventional",
+    "release-it",
+    "@release-it/conventional-changelog",
+    "auto-changelog"
   ]
 }
