@@ -114,6 +114,7 @@ config中新增了commitizen的路径配置，默认配置为cz-customizable表�
 - lint-staged.config.js：lint-staged配置模板，可自行修改
 - .cz-config.js：自定义终端汉化交互配置模板，可自行修改
 - .commitlintrc.js：commitlint配置模板，可自行修改
+- .release-it.json：release-it配置模板，可自行修改
 
 ## 试用步骤
 
