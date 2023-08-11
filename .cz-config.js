@@ -6,7 +6,7 @@ module.exports = {
   types: [
     { value: 'feat', name: 'feat     ✨: 新功能' },
     { value: 'fix', name: 'fix      🐛: 修复bug' },
-    { value: 'docs', name: 'docs     ✏️: 文档变更' },
+    { value: 'docs', name: 'docs     📝: 文档变更' },
     {
       value: 'chore',
       name: 'chore    🚀: 对构建过程或辅助工具和库的更改（不影响源文件、测试用例）',
@@ -20,7 +20,7 @@ module.exports = {
       name: 'refactor ♻️: 代码重构（不包括 bug 修复、功能新增）',
     },
     { value: 'perf', name: 'perf     ⚡️: 性能优化' },
-    { value: 'test', name: 'test     ✅: 添加、修改测试用例' },
+    { value: 'test', name: 'test     🚨: 添加、修改测试用例' },
     {
       value: 'build',
       name: 'build    📦️: 构建流程、外部依赖变更（如升级 npm 包、修改 webpack 配置等）',
@@ -28,8 +28,12 @@ module.exports = {
     { value: 'ci', name: 'ci       👷: 修改 CI 配置、脚本' },
     { value: 'revert', name: 'revert   ⏪️: 回滚 commit' },
     
-    // 这里可以新增自定义的type，主要借助commitlint-config-cz工具包，已在.commitlintrc.js中进行配置
-    // 不完美的是手动输入git commit -m "version: xxx" 才可以通过验证
+    
+    /**
+     * 这里可以新增自定义的type，主要借助commitlint-config-cz工具包，已在.commitlintrc.js中进行配置
+     * 因为是自定义的type，Angular规范不能正确识别它们，
+     * 因此需要手动输入git commit -m "version: xxx" 才可以通过验证
+     */
     // { value: 'version', name: 'version     🎉: 发布新版本' },
     // { value: 'init', name: 'init     🎉: 初始化' },
   ],
