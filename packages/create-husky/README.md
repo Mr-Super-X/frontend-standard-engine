@@ -150,6 +150,7 @@ yarn.lock # 如果你选择yarn安装
 .commitlintrc.js
 .cz-config.js
 lint-staged.config.js
+.release-it.json
 # 忽略create-husky生成文件 end
 ```
 
