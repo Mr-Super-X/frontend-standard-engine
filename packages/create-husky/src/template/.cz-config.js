@@ -27,8 +27,11 @@ module.exports = {
     },
     { value: 'ci', name: 'ci       👷: 修改 CI 配置、脚本' },
     { value: 'revert', name: 'revert   ⏪️: 回滚 commit' },
-    { value: 'version', name: 'version     🎉: 发布新版本' },
-    { value: 'init', name: 'init     🎉: 初始化' },
+    
+    // 这里可以新增自定义的type，主要借助commitlint-config-cz工具包，已在.commitlintrc.js中进行配置
+    // 不完美的是手动输入git commit -m "version: xxx" 才可以通过验证
+    // { value: 'version', name: 'version     🎉: 发布新版本' },
+    // { value: 'init', name: 'init     🎉: 初始化' },
   ],
   // scope 类型（定义之后，可通过上下键选择）
   scopes: [

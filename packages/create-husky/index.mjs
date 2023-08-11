@@ -21,6 +21,7 @@ const projectDirectory = cwd(), // 项目目录
   lintStagedFile = resolve(projectDirectory, "lint-staged.config.js"), // 获取lint-staged配置模板
   commitlintFile = resolve(projectDirectory, ".commitlintrc.js"), // 获取commitlint配置模板
   czFile = resolve(projectDirectory, ".cz-config.js"), // 获取cz配置模板
+  releaseItFile = resolve(projectDirectory, ".release-it.json"), // 获取release-it配置模板
   // 获取相关配置的文件目录
   commitlintFileTemplateDir = resolve(
     fileURLToPath(import.meta.url),
@@ -32,18 +33,24 @@ const projectDirectory = cwd(), // 项目目录
     "../src/template",
     ".cz-config.js"
   ),
+  releaseItFileTemplateDir = resolve(
+    fileURLToPath(import.meta.url),
+    "../src/template",
+    ".cz-config.js"
+  ),
   needDependencies = ["eslint", "prettier", "stylelint"], // pak包中需包含的依赖
   // 命令枚举
   commandMap = {
     npm: "npm install && npm install --save-dev ",
     yarn: "yarn && yarn add --dev ",
-    pnpm: "npm install && pnpm install --save-dev ",
+    pnpm: "pnpm install && pnpm install --save-dev ",
   },
   // 需要安装的依赖
   huskyPackages = "husky@8.0.3",
   preCommitPackages = "lint-staged@13.2.3",
   commitMsgPackages =
-    "@commitlint/cli@17.6.7 @commitlint/config-conventional@17.6.7 commitizen@4.3.0 commitlint-config-cz@0.13.3 cz-customizable@7.0.0";
+    "@commitlint/cli@17.6.7 @commitlint/config-conventional@17.6.7 commitizen@4.3.0 commitlint-config-cz@0.13.3 cz-customizable@7.0.0",
+  releaseItPackages = "release-it@16.0.0 @release-it/conventional-changelog@7.0.0 auto-changelog@2.4.0"
 // husky输出的脚本内容
 const createGitHook = `npx husky install`;
 const createCommitHook = `npx husky add .husky/pre-commit "npx lint-staged"`;
@@ -74,6 +81,15 @@ const huskyQuestions = [
     type: "confirm",
     name: "commitlint",
     message: "是否需要commit信息验证？",
+  },
+];
+
+// release-it 询问
+const releaseItQuestions = [
+  {
+    type: "confirm",
+    name: "releaseit",
+    message: "是否需要安装release-it和auto-changelog功能？",
   },
 ];
 
@@ -166,7 +182,7 @@ async function init() {
   // 确定终端要询问的内容
   const questions =
     pakHasLint.length === 0
-      ? [...noLintQuestions, ...huskyQuestions]
+      ? [...noLintQuestions, ...huskyQuestions, ...releaseItQuestions]
       : huskyQuestions;
   // 同步检查.husky目录是否存在，如果存在，则在终端询问是否要覆盖
   if (existsSync(huskyFile)) {
@@ -187,12 +203,17 @@ async function init() {
   }
 
   // 读取操作结果
-  const { selectLint, manager, commitlint } = result;
+  const { selectLint, manager, commitlint, releaseit } = result;
+
   // 判断用户是否选择commitlint，安装不同的包
-  const packages = commitlint
+  const commitlintPackages = commitlint
     ? `${huskyPackages} ${preCommitPackages} ${commitMsgPackages}`
     : `${huskyPackages} ${preCommitPackages}`;
-  // 判断用户是否选择commitlint，执行不同的操作
+
+  // 判断用户是否选择安装release-it，选择了则安装相关包
+  const packages = releaseit ? `${commitlintPackages} ${releaseItPackages}` : `${commitMsgPackages}`
+
+  // 判断用户是否选择commitlint，生成不同的git hook
   const createHookCommand = commitlint
     ? `${createGitHook} && ${createCommitHook} && ${createMsgHook}`
     : `${createGitHook} && ${createCommitHook}`;
@@ -224,36 +245,64 @@ async function init() {
     }
     // 写入package.json
     let newPakContent = JSON.parse(readFileSync(pakFile));
-    newPakContent.scripts = {
-      ...newPakContent.scripts,
+
+    // commit-msg生成脚本
+    const commitMsgScript = commitlint ? {
       prepare: "husky install", // install pkg时自动触发husky初始化
       commit: "git add . && cz", // 快捷命令 - 暂存
       push: "git add . && cz && git push", // 快捷命令 - 推送
+    } : {}
+
+    // release-it生成脚本
+    const releaseitScript = releaseit ? {
+      "release:major": "release-it major", // 发布major版本
+      "release:minor": "release-it minor", // 发布minor版本
+      "release:patch": "release-it patch", // 发布patch版本
+    } : {}
+
+    // 写入脚本
+    newPakContent.scripts = {
+      ...newPakContent.scripts,
+      ...commitMsgScript,
+      ...releaseitScript,
     };
-    newPakContent.config = {
-      ...(newPakContent?.config || {}),
+
+    // commit-msg生成配置
+    const commitMsgConfig = commitlint ? {
       commitizen: {
         path: "./node_modules/cz-customizable",
       },
       "cz-customizable": {
         config: "./.cz-config.js",
       },
+    } : {}
+
+    // 写入config配置
+    newPakContent.config = {
+      ...(newPakContent?.config || {}),
+      ...commitMsgConfig,
     };
-    // 考虑不帮用户做强制决定，由用户自己修复
-    // delete newPakContent.type; // 默认删除package.json的type属性，项目一般都支持esmodule和commonjs
+    
     // 写入package.json文件，后面的参数用于美化json格式
     writeFileSync(pakFile, JSON.stringify(newPakContent, null, "\t"));
     writeFileSync(lintStagedFile, lintStagedContent);
 
-    // 模板拷贝
-    copyFileSync(commitlintFileTemplateDir, commitlintFile);
-    copyFileSync(czFileTemplateDir, czFile);
+    // commitlint配置模板
+    if (commitlint) {
+      copyFileSync(commitlintFileTemplateDir, commitlintFile);
+      copyFileSync(czFileTemplateDir, czFile);
+    }
+
+    // release-it配置模板
+    if(releaseit) {
+      copyFileSync(releaseItFileTemplateDir, releaseItFile);
+    }
 
     // 安装成功提示
     spinner.success({ text: green("安装成功~准备添加钩子! 🎉"), mark: "✔" });
 
     // 创建添加hook进度提示
-    const hookSpinner = createSpinner("生成husky钩子中...").start();
+    const hookSpinner = createSpinner("生成配置中...").start();
 
     // 执行添加hook命令
     exec(`${createHookCommand}`, { cwd: projectDirectory }, (error) => {
