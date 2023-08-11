@@ -1,6 +1,6 @@
 {
 	"name": "frontend-standard-engine",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "自动生成前端规范配置的cli工具集合",
 	"author": "JP.Chen",
 	"license": "MIT",
