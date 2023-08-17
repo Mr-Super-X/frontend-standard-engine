@@ -143,6 +143,89 @@ const overwriteQuestions = [
   },
 ];
 
+// 创建职责链模式基础类
+class ChainBaseHandler {
+  constructor() {
+    this.nextHandler = null;
+  }
+
+  // 设置下一个操作工序
+  setNextHandler(handler) {
+    if (this.nextHandler === null) {
+      this.nextHandler = handler;
+    } else {
+      this.nextHandler.setNextHandler(handler);
+    }
+
+    // 实现链式调用
+    return this;
+  }
+
+  /**
+   * 生成依赖包工厂 - 通过读取用户操作结果来生成要安装的依赖
+   * @param {*} result 用户操作结果-集合
+   * @param {*} bool 用户操作结果-当前
+   * @param {*} pkg 需要安装的依赖
+   * @returns 返回当前工序加工完成后的产物
+   */
+  generatePackage(result, bool, pkg) {
+    if (bool) {
+      // 当前要安装的依赖
+      const currentPackage = pkg;
+      // 下一道工序是否产生新的依赖
+      const nextPackages = this.nextHandler
+        ? this.nextHandler.handler(result)
+        : "";
+
+      // 组合当前依赖和下一道工序产生的结果
+      const packages = `${currentPackage} ${nextPackages}`;
+
+      // 返回结果
+      return packages;
+    } else {
+      // 如果用户当前操作取消了，则不需要继续
+      return "";
+    }
+  }
+}
+
+// 默认要安装的依赖处理工序
+class DefaultHandler extends ChainBaseHandler {
+  handler(result) {
+    const huskyPackages = "husky@8.0.3";
+    const preCommitPackages = "lint-staged@13.2.3";
+    const currentPackage = `${huskyPackages} ${preCommitPackages}`;
+
+    // result必须传给下一道工序使用
+    // 它就相当于一份生产合同，下一个工厂也要按照合同来生产内容
+    return this.generatePackage(result, result.selectLint, currentPackage);
+  }
+}
+
+// 用户确认选择commitlint要安装的依赖处理工序
+class CommitlintHandler extends ChainBaseHandler {
+  handler(result) {
+    const currentPackage =
+      "@commitlint/cli@17.6.7 @commitlint/config-conventional@17.6.7 commitizen@4.3.0 commitlint-config-cz@0.13.3 cz-customizable@7.0.0";
+
+    // result必须传给下一道工序使用
+    // 它就相当于一份生产合同，下一个工厂也要按照合同来生产内容
+    return this.generatePackage(result, result.commitlint, currentPackage);
+  }
+}
+
+// 用户确认选择release-it要安装的依赖处理工序
+class ReleaseItHandler extends ChainBaseHandler {
+  handler(result) {
+    const currentPackage =
+      "release-it@16.0.0 @release-it/conventional-changelog@7.0.0 auto-changelog@2.4.0";
+
+    // result必须传给下一道工序使用
+    // 它就相当于一份生产合同，下一个工厂也要按照合同来生产内容
+    return this.generatePackage(result, result.releaseit, currentPackage);
+  }
+}
+
 // 初始化函数
 async function init() {
   console.log(
@@ -193,79 +276,6 @@ async function init() {
 
   // 读取操作结果
   const { selectLint, manager, commitlint, releaseit } = result;
-
-  // 创建职责链模式基础类
-  class ChainBaseHandler {
-    constructor() {
-      this.nextHandler = null;
-    }
-
-    // 设置下一个操作工序
-    setNextHandler(handler) {
-      if (this.nextHandler === null) {
-        this.nextHandler = handler;
-      } else {
-        this.nextHandler.setNextHandler(handler);
-      }
-
-      // 实现链式调用
-      return this;
-    }
-
-    /**
-     * 通过读取用户操作结果来生成要安装的依赖
-     * @param {*} bool 用户操作结果
-     * @param {*} pkg 需要安装的依赖
-     * @returns 返回当前工序加工完成后的产物
-     */
-    generatePackage(bool, pkg) {
-      if (bool) {
-        // 当前要安装的依赖
-        const currentPackage = pkg;
-        // 下一道工序是否产生新的依赖
-        const nextPackages = this.nextHandler
-          ? this.nextHandler.handler(result)
-          : "";
-
-        // 组合当前依赖和下一道工序产生的结果
-        const packages = `${currentPackage} ${nextPackages}`;
-
-        // 返回结果
-        return packages;
-      } else {
-        // 如果用户当前操作取消了，则不需要继续
-        return "";
-      }
-    }
-  }
-
-  // 默认要安装的依赖处理工序
-  class DefaultHandler extends ChainBaseHandler {
-    handler(result) {
-      const huskyPackages = "husky@8.0.3";
-      const preCommitPackages = "lint-staged@13.2.3";
-      const currentPackage = `${huskyPackages} ${preCommitPackages}`;
-      return this.generatePackage(result.selectLint, currentPackage);
-    }
-  }
-
-  // 用户确认选择commitlint要安装的依赖处理工序
-  class CommitlintHandler extends ChainBaseHandler {
-    handler(result) {
-      const currentPackage =
-        "@commitlint/cli@17.6.7 @commitlint/config-conventional@17.6.7 commitizen@4.3.0 commitlint-config-cz@0.13.3 cz-customizable@7.0.0";
-      return this.generatePackage(result.commitlint, currentPackage);
-    }
-  }
-
-  // 用户确认选择release-it要安装的依赖处理工序
-  class ReleaseItHandler extends ChainBaseHandler {
-    handler(result) {
-      const currentPackage =
-        "release-it@16.0.0 @release-it/conventional-changelog@7.0.0 auto-changelog@2.4.0";
-      return this.generatePackage(result.releaseit, currentPackage);
-    }
-  }
 
   // 设置第一道工序
   const defaultHandler = new DefaultHandler();
