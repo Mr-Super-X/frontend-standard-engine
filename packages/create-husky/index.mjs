@@ -2,12 +2,7 @@
 import prompts from "prompts";
 import beautify from "js-beautify";
 import { red, cyan, green } from "kolorist";
-import {
-  copyFileSync,
-  existsSync,
-  readFileSync,
-  writeFileSync,
-} from "node:fs";
+import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { cwd } from "node:process";
 import { exec } from "node:child_process";
 import { resolve } from "node:path";
@@ -44,13 +39,7 @@ const projectDirectory = cwd(), // 项目目录
     npm: "npm install && npm install --save-dev ",
     yarn: "yarn && yarn add --dev ",
     pnpm: "pnpm install && pnpm install --save-dev ",
-  },
-  // 需要安装的依赖
-  huskyPackages = "husky@8.0.3",
-  preCommitPackages = "lint-staged@13.2.3",
-  commitMsgPackages =
-    "@commitlint/cli@17.6.7 @commitlint/config-conventional@17.6.7 commitizen@4.3.0 commitlint-config-cz@0.13.3 cz-customizable@7.0.0",
-  releaseItPackages = "release-it@16.0.0 @release-it/conventional-changelog@7.0.0 auto-changelog@2.4.0"
+  };
 // husky输出的脚本内容
 const createGitHook = `npx husky install`;
 const createCommitHook = `npx husky add .husky/pre-commit "npx lint-staged"`;
@@ -146,7 +135,7 @@ const overwriteQuestions = [
       } else {
         // 用户同意覆盖，则先清空.husky文件夹，然后走后面的重新安装流程
         // 如果不清空.husky则每次都会在git hook钩子中push一条代码导致很多重复内容
-        deleteFolderRecursive(huskyFile)
+        deleteFolderRecursive(huskyFile);
       }
       return null;
     },
@@ -205,13 +194,89 @@ async function init() {
   // 读取操作结果
   const { selectLint, manager, commitlint, releaseit } = result;
 
-  // 判断用户是否选择commitlint，安装不同的包
-  const commitlintPackages = commitlint
-    ? `${huskyPackages} ${preCommitPackages} ${commitMsgPackages}`
-    : `${huskyPackages} ${preCommitPackages}`;
+  // 创建职责链模式基础类
+  class ChainBaseHandler {
+    constructor() {
+      this.nextHandler = null;
+    }
 
-  // 判断用户是否选择安装release-it，选择了则安装相关包
-  const packages = releaseit ? `${commitlintPackages} ${releaseItPackages}` : `${commitMsgPackages}`
+    // 设置下一个操作工序
+    setNextHandler(handler) {
+      if (this.nextHandler === null) {
+        this.nextHandler = handler;
+      } else {
+        this.nextHandler.setNextHandler(handler);
+      }
+
+      // 实现链式调用
+      return this;
+    }
+
+    /**
+     * 通过读取用户操作结果来生成要安装的依赖
+     * @param {*} bool 用户操作结果
+     * @param {*} pkg 需要安装的依赖
+     * @returns 返回当前工序加工完成后的产物
+     */
+    generatePackage(bool, pkg) {
+      if (bool) {
+        // 当前要安装的依赖
+        const currentPackage = pkg;
+        // 下一道工序是否产生新的依赖
+        const nextPackages = this.nextHandler
+          ? this.nextHandler.handler(result)
+          : "";
+
+        // 组合当前依赖和下一道工序产生的结果
+        const packages = `${currentPackage} ${nextPackages}`;
+
+        // 返回结果
+        return packages;
+      } else {
+        // 如果用户当前操作取消了，则不需要继续
+        return "";
+      }
+    }
+  }
+
+  // 默认要安装的依赖处理工序
+  class DefaultHandler extends ChainBaseHandler {
+    handler(result) {
+      const huskyPackages = "husky@8.0.3";
+      const preCommitPackages = "lint-staged@13.2.3";
+      const currentPackage = `${huskyPackages} ${preCommitPackages}`;
+      return this.generatePackage(result.selectLint, currentPackage);
+    }
+  }
+
+  // 用户确认选择commitlint要安装的依赖处理工序
+  class CommitlintHandler extends ChainBaseHandler {
+    handler(result) {
+      const currentPackage =
+        "@commitlint/cli@17.6.7 @commitlint/config-conventional@17.6.7 commitizen@4.3.0 commitlint-config-cz@0.13.3 cz-customizable@7.0.0";
+      return this.generatePackage(result.commitlint, currentPackage);
+    }
+  }
+
+  // 用户确认选择release-it要安装的依赖处理工序
+  class ReleaseItHandler extends ChainBaseHandler {
+    handler(result) {
+      const currentPackage =
+        "release-it@16.0.0 @release-it/conventional-changelog@7.0.0 auto-changelog@2.4.0";
+      return this.generatePackage(result.releaseit, currentPackage);
+    }
+  }
+
+  // 设置第一道工序
+  const defaultHandler = new DefaultHandler();
+
+  // 设置工序之间如何工作，未来要加入新的工序只需创建新的工序类，然后在这里设置关系链即可，无需改动其它代码
+  defaultHandler
+    .setNextHandler(new CommitlintHandler())
+    .setNextHandler(new ReleaseItHandler());
+
+  // 调用第一道工序，将操作结果传入，得到所有工序的处理结果
+  const packages = defaultHandler.handler(result);
 
   // 判断用户是否选择commitlint，生成不同的git hook
   const createHookCommand = commitlint
@@ -247,18 +312,22 @@ async function init() {
     let newPakContent = JSON.parse(readFileSync(pakFile));
 
     // commit-msg生成脚本
-    const commitMsgScript = commitlint ? {
-      prepare: "husky install", // install pkg时自动触发husky初始化
-      commit: "git add . && cz", // 快捷命令 - 暂存
-      push: "git add . && cz && git push", // 快捷命令 - 推送
-    } : {}
+    const commitMsgScript = commitlint
+      ? {
+          prepare: "husky install", // install pkg时自动触发husky初始化
+          commit: "git add . && cz", // 快捷命令 - 暂存
+          push: "git add . && cz && git push", // 快捷命令 - 推送
+        }
+      : {};
 
     // release-it生成脚本
-    const releaseitScript = releaseit ? {
-      "release:major": "release-it major", // 发布major版本
-      "release:minor": "release-it minor", // 发布minor版本
-      "release:patch": "release-it patch", // 发布patch版本
-    } : {}
+    const releaseitScript = releaseit
+      ? {
+          "release:major": "release-it major", // 发布major版本
+          "release:minor": "release-it minor", // 发布minor版本
+          "release:patch": "release-it patch", // 发布patch版本
+        }
+      : {};
 
     // 写入脚本
     newPakContent.scripts = {
@@ -268,21 +337,23 @@ async function init() {
     };
 
     // commit-msg生成配置
-    const commitMsgConfig = commitlint ? {
-      commitizen: {
-        path: "./node_modules/cz-customizable",
-      },
-      "cz-customizable": {
-        config: "./.cz-config.js",
-      },
-    } : {}
+    const commitMsgConfig = commitlint
+      ? {
+          commitizen: {
+            path: "./node_modules/cz-customizable",
+          },
+          "cz-customizable": {
+            config: "./.cz-config.js",
+          },
+        }
+      : {};
 
     // 写入config配置
     newPakContent.config = {
       ...(newPakContent?.config || {}),
       ...commitMsgConfig,
     };
-    
+
     // 写入package.json文件，后面的参数用于美化json格式
     writeFileSync(pakFile, JSON.stringify(newPakContent, null, "\t"));
     writeFileSync(lintStagedFile, lintStagedContent);
@@ -294,7 +365,7 @@ async function init() {
     }
 
     // release-it配置模板
-    if(releaseit) {
+    if (releaseit) {
       copyFileSync(releaseItFileTemplateDir, releaseItFile);
     }
 
