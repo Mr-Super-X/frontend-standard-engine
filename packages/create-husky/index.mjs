@@ -11,7 +11,7 @@ import { createSpinner } from "nanospinner";
 import { getLintStagedOption, deleteFolderRecursive } from "./src/index.js";
 
 const projectDirectory = cwd(), // 项目目录
-  pakFile = resolve(projectDirectory, "package.json"), // 获取项目package.json
+  pkgFile = resolve(projectDirectory, "package.json"), // 获取项目package.json
   huskyFile = resolve(projectDirectory, ".husky"), // 获取husky目录
   lintStagedFile = resolve(projectDirectory, "lint-staged.config.js"), // 获取lint-staged配置模板
   commitlintFile = resolve(projectDirectory, ".commitlintrc.js"), // 获取commitlint配置模板
@@ -33,7 +33,7 @@ const projectDirectory = cwd(), // 项目目录
     "../src/template",
     ".release-it.json"
   ),
-  needDependencies = ["eslint", "prettier", "stylelint"], // pak包中需包含的依赖
+  needDependencies = ["eslint", "prettier", "stylelint"], // pkg包中需包含的依赖
   // 命令枚举
   commandMap = {
     npm: "npm install && npm install --save-dev ",
@@ -187,6 +187,27 @@ class ChainBaseHandler {
       return "";
     }
   }
+
+  /**
+   * 生成职责链
+   * @param {*} chains Array 工序集合组成的职责链
+   * @returns 返回第一道工序，因为操作结果要从第一道工序往下传递
+   */
+  static generateChain(chains = []) {
+    if(chains.length === 0) {
+      throw new Error(cyan("请传入要执行的工序集合")); 
+    }
+    // 取出第一道工序
+    const first = chains[0]
+  
+    // 由第一道工序开始往下一道工序传递，所以i从下标1开始
+    for(let i = 1; i < chains.length; i++) {
+      first.setNextHandler(chains[i])
+    }
+  
+    // 返回第一道工序，因为操作结果要从第一道工序往下传递
+    return first
+  }
 }
 
 // 默认要安装的依赖处理工序
@@ -233,19 +254,19 @@ async function init() {
       "\n🐣欢迎使用git hook添加工具，使用本工具前请确保该工程已关联git仓库！\n"
     )
   );
-  console.log(`当前package.json路径：${pakFile}`);
+  console.log(`当前package.json路径：${pkgFile}`);
   // 同步检查package.json是否存在
-  if (!existsSync(pakFile)) {
+  if (!existsSync(pkgFile)) {
     console.log(red("错误，项目根目录下未找到package.json"));
     return;
   }
   // 读取项目package.json
-  const pakContent = JSON.parse(readFileSync(pakFile));
+  const pkgContent = JSON.parse(readFileSync(pkgFile));
 
   // 读取dependencies和devDependencies
   const devs = {
-    ...(pakContent?.devDependencies || {}),
-    ...(pakContent?.dependencies || {}),
+    ...(pkgContent?.devDependencies || {}),
+    ...(pkgContent?.dependencies || {}),
   };
   // 检查依赖
   const pakHasLint = needDependencies.filter((item) => {
@@ -277,16 +298,14 @@ async function init() {
   // 读取操作结果
   const { selectLint, manager, commitlint, releaseit } = result;
 
-  // 设置第一道工序
-  const defaultHandler = new DefaultHandler();
+  // 设置工序之间如何工作，未来要加入新的工序只需创建新的工序类，然后在这里配置即可
+  const chains = [new DefaultHandler(), new CommitlintHandler(), new ReleaseItHandler()]
 
-  // 设置工序之间如何工作，未来要加入新的工序只需创建新的工序类，然后在这里设置关系链即可，无需改动其它代码
-  defaultHandler
-    .setNextHandler(new CommitlintHandler())
-    .setNextHandler(new ReleaseItHandler());
+  // 拿到设置好的职责链的第一道工序
+  const firstProcess = ChainBaseHandler.generateChain(chains)
 
   // 调用第一道工序，将操作结果传入，得到所有工序的处理结果
-  const packages = defaultHandler.handler(result);
+  const packages = firstProcess.handler(result);
 
   // 判断用户是否选择commitlint，生成不同的git hook
   const createHookCommand = commitlint
@@ -319,7 +338,7 @@ async function init() {
       return;
     }
     // 写入package.json
-    let newPakContent = JSON.parse(readFileSync(pakFile));
+    let newPakContent = JSON.parse(readFileSync(pkgFile));
 
     // commit-msg生成脚本
     const commitMsgScript = commitlint
@@ -365,7 +384,7 @@ async function init() {
     };
 
     // 写入package.json文件，后面的参数用于美化json格式
-    writeFileSync(pakFile, JSON.stringify(newPakContent, null, "\t"));
+    writeFileSync(pkgFile, JSON.stringify(newPakContent, null, "\t"));
     writeFileSync(lintStagedFile, lintStagedContent);
 
     // commitlint配置模板
