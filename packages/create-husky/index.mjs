@@ -194,19 +194,19 @@ class ChainBaseHandler {
    * @returns 返回第一道工序，因为操作结果要从第一道工序往下传递
    */
   static generateChain(chains = []) {
-    if(chains.length === 0) {
-      throw new Error(cyan("请传入要执行的工序集合")); 
+    if (chains.length === 0) {
+      throw new Error(cyan("请传入要执行的工序集合"));
     }
     // 取出第一道工序
-    const first = chains[0]
-  
+    const first = chains[0];
+
     // 由第一道工序开始往下一道工序传递，所以i从下标1开始
-    for(let i = 1; i < chains.length; i++) {
-      first.setNextHandler(chains[i])
+    for (let i = 1; i < chains.length; i++) {
+      first.setNextHandler(chains[i]);
     }
-  
+
     // 返回第一道工序，因为操作结果要从第一道工序往下传递
-    return first
+    return first;
   }
 }
 
@@ -299,10 +299,14 @@ async function init() {
   const { selectLint, manager, commitlint, releaseit } = result;
 
   // 设置工序之间如何工作，未来要加入新的工序只需创建新的工序类，然后在这里配置即可
-  const chains = [new DefaultHandler(), new CommitlintHandler(), new ReleaseItHandler()]
+  const chains = [
+    new DefaultHandler(),
+    new CommitlintHandler(),
+    new ReleaseItHandler(),
+  ];
 
   // 拿到设置好的职责链的第一道工序
-  const firstProcess = ChainBaseHandler.generateChain(chains)
+  const firstProcess = ChainBaseHandler.generateChain(chains);
 
   // 调用第一道工序，将操作结果传入，得到所有工序的处理结果
   const packages = firstProcess.handler(result);
@@ -344,6 +348,7 @@ async function init() {
     const commitMsgScript = commitlint
       ? {
           prepare: "husky install", // install pkg时自动触发husky初始化
+          rehusky: "node ./node_modules/@mr.mikey/create-husky/index.mjs", // 重新执行本依赖包，创建配置文件
           commit: "git add . && cz", // 快捷命令 - 暂存
           push: "git add . && cz && git push", // 快捷命令 - 推送
         }

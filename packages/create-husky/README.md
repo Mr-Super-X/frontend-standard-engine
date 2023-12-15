@@ -47,6 +47,7 @@ package.json 会新增以下内容
 ```json
 "scripts": {
   "prepare": "husky install",
+  "rehusky": "node ./node_modules/@mr.mikey/create-husky/index.mjs",
   "commit": "git add . && cz",
   "push": "git add . && cz && git push",
 
@@ -81,14 +82,15 @@ package.json 会新增以下内容
 
 scripts说明
 
-| 命令          | 说明                                                   |
-| ------------- | ------------------------------------------------------ |
-| prepare       | npm install时自动触发husky安装，保证团队内成员都能使用 |
-| commit        | 一键触发commit-msg交互选择工具并commit                 |
-| push          | 一键触发commit-msg交互选择工具并push                   |
-| release:major | 一键发布major版本                                      |
-| release:minor | 一键发布minor版本                                      |
-| release:patch | 一键发布patch版本                                      |
+| 命令          | 说明                                                                           |
+| ------------- | ------------------------------------------------------------------------------ |
+| prepare       | npm install时自动触发husky安装，保证团队内成员在初次克隆仓库安装依赖后就能使用 |
+| rehusky       | 重新执行本依赖包，创建配置文件                                                 |
+| commit        | 一键触发commit-msg交互选择工具并commit                                         |
+| push          | 一键触发commit-msg交互选择工具并push                                           |
+| release:major | 一键发布major版本                                                              |
+| release:minor | 一键发布minor版本                                                              |
+| release:patch | 一键发布patch版本                                                              |
 
 devDependencies说明（commitlint功能安装的是（2023/07/28）最新稳定版，release-it功能安装的是（2023/08/10）最新稳定版，安装时会固定以下版本号，防止某个包断崖式更新导致无法使用该功能）
 
