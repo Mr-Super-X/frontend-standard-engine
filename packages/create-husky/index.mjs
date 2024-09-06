@@ -2,7 +2,12 @@
 import prompts from "prompts";
 import beautify from "js-beautify";
 import { red, cyan, green } from "kolorist";
-import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { cwd } from "node:process";
 import { exec } from "node:child_process";
 import { resolve } from "node:path";
@@ -11,7 +16,7 @@ import { createSpinner } from "nanospinner";
 import { getLintStagedOption, deleteFolderRecursive } from "./src/index.js";
 
 const projectDirectory = cwd(), // 项目目录
-  pkgFile = resolve(projectDirectory, "package.json"), // 获取项目package.json
+  pakFile = resolve(projectDirectory, "package.json"), // 获取项目package.json
   huskyFile = resolve(projectDirectory, ".husky"), // 获取husky目录
   lintStagedFile = resolve(projectDirectory, "lint-staged.config.js"), // 获取lint-staged配置模板
   commitlintFile = resolve(projectDirectory, ".commitlintrc.js"), // 获取commitlint配置模板
@@ -33,17 +38,23 @@ const projectDirectory = cwd(), // 项目目录
     "../src/template",
     ".release-it.json"
   ),
-  needDependencies = ["eslint", "prettier", "stylelint"], // pkg包中需包含的依赖
+  needDependencies = ["eslint", "prettier", "stylelint"], // pak包中需包含的依赖
   // 命令枚举
   commandMap = {
     npm: "npm install && npm install --save-dev ",
     yarn: "yarn && yarn add --dev ",
     pnpm: "pnpm install && pnpm install --save-dev ",
-  };
+  },
+  // 需要安装的依赖
+  huskyPackages = "husky@8.0.3",
+  preCommitPackages = "lint-staged@13.2.3",
+  commitMsgPackages =
+    "@commitlint/cli@17.6.7 @commitlint/config-conventional@17.6.7 commitizen@4.3.0 commitlint-config-cz@0.13.3 cz-customizable@7.0.0",
+  releaseItPackages = "release-it@16.0.0 @release-it/conventional-changelog@7.0.0 auto-changelog@2.4.0"
 // husky输出的脚本内容
 const createGitHook = `npx husky install`;
-const createCommitHook = `npx husky add .husky/pre-commit "npx lint-staged"`;
-const createMsgHook = `npx husky add .husky/commit-msg "npx --no-install commitlint --edit \$\{1\}"`;
+const createCommitHook = `${process.cwd()}/node_modules/.bin/husky add .husky/pre-commit "npx lint-staged"`;
+const createMsgHook = `${process.cwd()}/node_modules/.bin/husky add .husky/commit-msg "npx --no-install commitlint --edit \$\{1\}"`;
 
 // 终端husky询问
 const huskyQuestions = [
@@ -135,117 +146,13 @@ const overwriteQuestions = [
       } else {
         // 用户同意覆盖，则先清空.husky文件夹，然后走后面的重新安装流程
         // 如果不清空.husky则每次都会在git hook钩子中push一条代码导致很多重复内容
-        deleteFolderRecursive(huskyFile);
+        deleteFolderRecursive(huskyFile)
       }
       return null;
     },
     name: "overwriteChecker",
   },
 ];
-
-// 创建职责链模式基础类
-class ChainBaseHandler {
-  constructor() {
-    this.nextHandler = null;
-  }
-
-  // 设置下一个操作工序
-  setNextHandler(handler) {
-    if (this.nextHandler === null) {
-      this.nextHandler = handler;
-    } else {
-      this.nextHandler.setNextHandler(handler);
-    }
-
-    // 实现链式调用
-    return this;
-  }
-
-  /**
-   * 生成依赖包工厂 - 通过读取用户操作结果来生成要安装的依赖
-   * @param {*} result 用户操作结果-集合
-   * @param {*} bool 用户操作结果-当前
-   * @param {*} pkg 需要安装的依赖
-   * @returns 返回当前工序加工完成后的产物
-   */
-  generatePackage(result, bool, pkg) {
-    if (bool) {
-      // 当前要安装的依赖
-      const currentPackage = pkg;
-      // 下一道工序是否产生新的依赖
-      const nextPackages = this.nextHandler
-        ? this.nextHandler.handler(result)
-        : "";
-
-      // 组合当前依赖和下一道工序产生的结果
-      const packages = `${currentPackage} ${nextPackages}`;
-
-      // 返回结果
-      return packages;
-    } else {
-      // 如果用户当前操作取消了，则不需要继续
-      return "";
-    }
-  }
-
-  /**
-   * 生成职责链
-   * @param {*} chains Array 工序集合组成的职责链
-   * @returns 返回第一道工序，因为操作结果要从第一道工序往下传递
-   */
-  static generateChain(chains = []) {
-    if (chains.length === 0) {
-      throw new Error(cyan("请传入要执行的工序集合"));
-    }
-    // 取出第一道工序
-    const first = chains[0];
-
-    // 由第一道工序开始往下一道工序传递，所以i从下标1开始
-    for (let i = 1; i < chains.length; i++) {
-      first.setNextHandler(chains[i]);
-    }
-
-    // 返回第一道工序，因为操作结果要从第一道工序往下传递
-    return first;
-  }
-}
-
-// 默认要安装的依赖处理工序
-class DefaultHandler extends ChainBaseHandler {
-  handler(result) {
-    const huskyPackages = "husky@8.0.3";
-    const preCommitPackages = "lint-staged@13.2.3";
-    const currentPackage = `${huskyPackages} ${preCommitPackages}`;
-
-    // result必须传给下一道工序使用
-    // 它就相当于一份生产合同，下一个工厂也要按照合同来生产内容
-    return this.generatePackage(result, result.selectLint, currentPackage);
-  }
-}
-
-// 用户确认选择commitlint要安装的依赖处理工序
-class CommitlintHandler extends ChainBaseHandler {
-  handler(result) {
-    const currentPackage =
-      "@commitlint/cli@17.6.7 @commitlint/config-conventional@17.6.7 commitizen@4.3.0 commitlint-config-cz@0.13.3 cz-customizable@7.0.0";
-
-    // result必须传给下一道工序使用
-    // 它就相当于一份生产合同，下一个工厂也要按照合同来生产内容
-    return this.generatePackage(result, result.commitlint, currentPackage);
-  }
-}
-
-// 用户确认选择release-it要安装的依赖处理工序
-class ReleaseItHandler extends ChainBaseHandler {
-  handler(result) {
-    const currentPackage =
-      "release-it@16.0.0 @release-it/conventional-changelog@7.0.0 auto-changelog@2.4.0";
-
-    // result必须传给下一道工序使用
-    // 它就相当于一份生产合同，下一个工厂也要按照合同来生产内容
-    return this.generatePackage(result, result.releaseit, currentPackage);
-  }
-}
 
 // 初始化函数
 async function init() {
@@ -254,19 +161,19 @@ async function init() {
       "\n🐣欢迎使用git hook添加工具，使用本工具前请确保该工程已关联git仓库！\n"
     )
   );
-  console.log(`当前package.json路径：${pkgFile}`);
+  console.log(`当前package.json路径：${pakFile}`);
   // 同步检查package.json是否存在
-  if (!existsSync(pkgFile)) {
+  if (!existsSync(pakFile)) {
     console.log(red("错误，项目根目录下未找到package.json"));
     return;
   }
   // 读取项目package.json
-  const pkgContent = JSON.parse(readFileSync(pkgFile));
+  const pakContent = JSON.parse(readFileSync(pakFile));
 
   // 读取dependencies和devDependencies
   const devs = {
-    ...(pkgContent?.devDependencies || {}),
-    ...(pkgContent?.dependencies || {}),
+    ...(pakContent?.devDependencies || {}),
+    ...(pakContent?.dependencies || {}),
   };
   // 检查依赖
   const pakHasLint = needDependencies.filter((item) => {
@@ -298,18 +205,13 @@ async function init() {
   // 读取操作结果
   const { selectLint, manager, commitlint, releaseit } = result;
 
-  // 设置工序之间如何工作，未来要加入新的工序只需创建新的工序类，然后在这里配置即可
-  const chains = [
-    new DefaultHandler(),
-    new CommitlintHandler(),
-    new ReleaseItHandler(),
-  ];
+  // 判断用户是否选择commitlint，安装不同的包
+  const commitlintPackages = commitlint
+    ? `${huskyPackages} ${preCommitPackages} ${commitMsgPackages}`
+    : `${huskyPackages} ${preCommitPackages}`;
 
-  // 拿到设置好的职责链的第一道工序
-  const firstProcess = ChainBaseHandler.generateChain(chains);
-
-  // 调用第一道工序，将操作结果传入，得到所有工序的处理结果
-  const packages = firstProcess.handler(result);
+  // 判断用户是否选择安装release-it，选择了则安装相关包
+  const packages = releaseit ? `${commitlintPackages} ${releaseItPackages}` : `${commitMsgPackages}`
 
   // 判断用户是否选择commitlint，生成不同的git hook
   const createHookCommand = commitlint
@@ -342,26 +244,21 @@ async function init() {
       return;
     }
     // 写入package.json
-    let newPakContent = JSON.parse(readFileSync(pkgFile));
+    let newPakContent = JSON.parse(readFileSync(pakFile));
 
     // commit-msg生成脚本
-    const commitMsgScript = commitlint
-      ? {
-          prepare: "husky install", // install pkg时自动触发husky初始化
-          rehusky: "node ./node_modules/@mr.mikey/create-husky/index.mjs", // 重新执行本依赖包，创建配置文件
-          commit: "git add . && cz", // 快捷命令 - 暂存
-          push: "git add . && cz && git push", // 快捷命令 - 推送
-        }
-      : {};
+    const commitMsgScript = commitlint ? {
+      prepare: "husky install", // install pkg时自动触发husky初始化
+      commit: "git add . && cz", // 快捷命令 - 暂存
+      push: "git add . && cz && git push", // 快捷命令 - 推送
+    } : {}
 
     // release-it生成脚本
-    const releaseitScript = releaseit
-      ? {
-          "release:major": "release-it major", // 发布major版本
-          "release:minor": "release-it minor", // 发布minor版本
-          "release:patch": "release-it patch", // 发布patch版本
-        }
-      : {};
+    const releaseitScript = releaseit ? {
+      "release:major": "release-it major", // 发布major版本
+      "release:minor": "release-it minor", // 发布minor版本
+      "release:patch": "release-it patch", // 发布patch版本
+    } : {}
 
     // 写入脚本
     newPakContent.scripts = {
@@ -371,16 +268,14 @@ async function init() {
     };
 
     // commit-msg生成配置
-    const commitMsgConfig = commitlint
-      ? {
-          commitizen: {
-            path: "./node_modules/cz-customizable",
-          },
-          "cz-customizable": {
-            config: "./.cz-config.js",
-          },
-        }
-      : {};
+    const commitMsgConfig = commitlint ? {
+      commitizen: {
+        path: "./node_modules/cz-customizable",
+      },
+      "cz-customizable": {
+        config: "./.cz-config.js",
+      },
+    } : {}
 
     // 写入config配置
     newPakContent.config = {
@@ -389,7 +284,7 @@ async function init() {
     };
 
     // 写入package.json文件，后面的参数用于美化json格式
-    writeFileSync(pkgFile, JSON.stringify(newPakContent, null, "\t"));
+    writeFileSync(pakFile, JSON.stringify(newPakContent, null, "\t"));
     writeFileSync(lintStagedFile, lintStagedContent);
 
     // commitlint配置模板
@@ -399,7 +294,7 @@ async function init() {
     }
 
     // release-it配置模板
-    if (releaseit) {
+    if(releaseit) {
       copyFileSync(releaseItFileTemplateDir, releaseItFile);
     }
 
